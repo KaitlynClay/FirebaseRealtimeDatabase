@@ -18,22 +18,21 @@ class MainActivity : AppCompatActivity() {
 
     val changeListener: ValueEventListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
-            if (snapshot.hasChildren()) {
-                // has children
-                var count = snapshot.childrenCount
+            if (snapshot.exists()) {
                 users.clear()
-                for (child in snapshot.children) {
-                    val holdData = child.getValue(Person::class.java)
+                for (childSnapshot in snapshot.children) {
+                    val holdData = childSnapshot.getValue(Person::class.java)
                     users.add(holdData!!)
                 }
+                adapter.notifyDataSetChanged()
             }
         }
-
 
         override fun onCancelled(error: DatabaseError) {
             Log.e("MainActivity", "Database error: ${error.message}")
         }
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,8 +50,8 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
 
         // Initialize Firebase
-        database = FirebaseDatabase.getInstance().reference.child("test4")
-        database.addValueEventListener(changeListener)
+        database = FirebaseDatabase.getInstance().reference.child("test5")
+        database.addChildEventListener(childEventListener)
 
         // Populate spinner with states
         val states = arrayOf("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware",
@@ -78,14 +77,28 @@ class MainActivity : AppCompatActivity() {
             // Clear input fields
             editTextName.text.clear()
             editTextAge.text.clear()
-
-            database.addListenerForSingleValueEvent(changeListener)
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        database.removeEventListener(changeListener)
+    private val childEventListener = object : ChildEventListener {
+        override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+            val person = snapshot.getValue(Person::class.java)
+            person?.let {
+                users.add(it)
+                adapter.notifyDataSetChanged()
+            }
+        }
+
+        override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) { }
+
+        override fun onChildRemoved(snapshot: DataSnapshot) { }
+
+        override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) { }
+
+        override fun onCancelled(error: DatabaseError) {
+            Log.e("MainActivity", "Database error: ${error.message}")
+        }
     }
 }
+
 
