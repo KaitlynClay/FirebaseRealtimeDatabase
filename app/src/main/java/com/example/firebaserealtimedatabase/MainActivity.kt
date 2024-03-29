@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
 
         // Initialize Firebase
-        database = FirebaseDatabase.getInstance().reference.child("test5")
+        database = FirebaseDatabase.getInstance().reference.child("test6")
         database.addChildEventListener(childEventListener)
 
         // Populate spinner with states
